@@ -22,10 +22,14 @@ proc gd*[I] (grad: FNum[I], x0: TVec[I], iters : int = MAX_ITER,
     xo = xn
     xn -= EPS*grad(xn)
     n += 1
-  # echo n
   result = xn
-  if n == MAX_ITER: raise newException(EConvergenceError, 
-    "Failed to converge after " & $n & " iterations.")
+  # var (n, x) = (0, x0)
+  # while n < iters and x.grad.norm > tol:
+  #   x -= EPS*grad(x)
+  #   n += 1
+  # if n == MAX_ITER and iters > MAX_ITER: raise newException(EConvergenceError, 
+  #   "Failed to converge after " & $n & " iterations.")
+  # result = x
 
 proc nm*[I] (grad: FNum[I], hess: FNum[I], x0: TVec[I],
   iters : int = MAX_ITER, tol: float = 1e-6): TVec[I] =
