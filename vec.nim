@@ -7,9 +7,10 @@
 
 import future, math
 
-type 
-  TVec*[I] = array[I, float]
-  TNum* = int or float
+type
+  Tfloat = TReal
+  TNum* = TNumber
+  TVec*[I] = array[I, Tfloat]
 
 #_____________________________________________________________________________
 #
@@ -23,16 +24,28 @@ proc `$`*[I](x: TVec[I]): string {.noSideEffect.} =
 
 #_____________________________________________________________________________
 #
+# Converters
+#_____________________________________________________________________________
+
+converter `toCint`*[T](lst: openarray[T]): seq[cint] = map(lst, proc (x: T) : cint = cint(x))
+converter `toCint`*[T](lst: varargs[T]): seq[cint] = map(lst, proc (x: T) : cint = cint(x))
+
+#_____________________________________________________________________________
+#
 # Vector creation
 #_____________________________________________________________________________
 
-proc zeros*(N: int) : auto {.noSideEffect.} =
-  result = array(0..N-1, float)
-  for val in result: val = 0.0
+proc zeros*(N: int) : auto {.noSideEffect.} = result = newSeq[float](N)
+
+proc zeros*(N: int, T : typedesc) : auto {.noSideEffect.} = result = newSeq[T](N)
 
 proc ones*(N: int) : auto {.noSideEffect.} =
-  result = array[0..N-1, float]
-  for val in result: val = 1.0
+  result = newSeq[float](N)
+  for i in 0..N-1: result[i] = 1.0
+
+proc ones*(N: int, T : typedesc) : auto {.noSideEffect.} =
+  result = newSeq[T](N)
+  for i in 0..N-1: result[i] = 1.0
 
 template arange*(N: int) : seq[int] = arange(0, N, int)
 
@@ -52,8 +65,10 @@ proc arange*[T](N1: int, N2: int, typ: typedesc[T]) : seq[T] =
 # unary operations
 #_____________________________________________________________________________
 
-proc `-`*[I] (x: array[I, TNum]) : array[I, TNum] {.noSideEffect, inline.} =
+proc `-`*[I] (x: TVec[I]) : TVec[I] {.noSideEffect, inline.} =
   for k, v in x: result[k] = -v
+
+template `+`*[I] (x: TVec[I]) : expr = x
 
 proc intpow*(x: TNum, n: int): auto {.inline.} =
   case n
@@ -63,7 +78,6 @@ proc intpow*(x: TNum, n: int): auto {.inline.} =
   else: result = pow(abs(x), float(n))
 
 proc norm*[I](x: TVec[I], root: bool = True, p: int = 2): float {.inline.} =
-  # result = x.mapIt(float, intpow(it, p)).sum
   result = sum(map(x, proc (it: float) : float = intpow(abs(it), p)))
   if root and p > 0: result = pow(result, 1/p)
 
@@ -72,32 +86,28 @@ proc norm*[I](x: TVec[I], root: bool = True, p: int = 2): float {.inline.} =
 # vector-vector operations
 #_____________________________________________________________________________
 
-proc `-=`*[I] (x: var array[I, TNum], c: array[I, TNum]) : void {.inline.} =
-  # echo "Substracting ", c, " from ", x
-  for k, v in x: x[k] -= c[k]
-  # echo "Got ", x
+proc `-=`*[I] (x: var TVec[I], c: TVec[I]) : void {.inline.} =
+  for i in x.low..x.high: x[i] -= c[i] # what if c's indices are different?
 
-proc `+=`*[I] (x: var array[I, TNum], c: array[I, TNum]) : void {.inline.} =
-  for k, v in x: x[k] += c[k]
+proc `+=`*[I] (x: var TVec[I], c: TVec[I]) : void {.inline.} =
+  for i in x.low..x.high: x[i] += c[i] # what if c's indices are different?
 
 proc `+`*[I] (x, y: TVec[I]) : TVec[I] {.noSideEffect.} = 
-  # result = zip(@x, @y).map(proc (t: tuple[a, b: float]): T = t.a + t.b)
-  # result = zip(@x, @y).mapIt(float, it[0] + it[1]) #.map((a, b) => a + b) #
-  result = x
-  for k, v in y: result[k] += v     
+  for i in x.low..x.high: result[i] = x[i] + y[i]
 
 proc `-`*[I] (x, y: TVec[I]) : TVec[I] {.noSideEffect.} = 
-  # result = zip(@x, @y).map(proc (t: tuple[a, b: float]): T = t.a - t.b)
-  result = x
-  for k, v in y: result[k] -= v
+  for i in x.low..x.high: result[i] = x[i] - y[i]
 
 proc `./`*[I] (x, y: TVec[I]) : TVec[I] {.noSideEffect.} = 
-  result = x
-  for k, v in y: result[k] /= y[k]
+  for i in x.low..x.high: result[i] = x[i]/y[i]
 
 proc `.*`*[I] (x, y: TVec[I]) : float {.noSideEffect.} = 
-  result = 0
-  for k, v in x: result += v*y[k]
+  for i in x.low..x.high: result += x[i] * y[i]
+
+proc `~=`*[I] (x, y: TVec[I], tolerance: float = 1e-6) : bool {.noSideEffect.} = 
+  for i in x.low..x.high:
+    if abs(x[i] - y[i]) >= tolerance: return false
+  result = true
 
 #_____________________________________________________________________________
 #
@@ -105,30 +115,25 @@ proc `.*`*[I] (x, y: TVec[I]) : float {.noSideEffect.} =
 #_____________________________________________________________________________
 
 proc `-`*[I] (x: TVec[I], c: TNum) : TVec[I] {.noSideEffect.} =
-  result = x
-  for i in x.low..x.high: result[i] -= float(c)
+  for i in x.low..x.high: result[i] = x[i] - float(c)
 
 proc `*`*[I] (x: TVec[I], c: TNum) : TVec[I] {.noSideEffect.} =
-  result = x
-  for i in x.low..x.high: result[i] *= float(c)
+  for i in x.low..x.high: result[i] = x[i] * float(c)
 
 proc `+`*[I] (x: TVec[I], c: TNum) : TVec[I] {.noSideEffect.} =
-  result = x
-  for i in x.low..x.high: result[i] += float(c)
+  for i in x.low..x.high: result[i] = x[i] + float(c)
 
 proc `/`*[I] (x: TVec[I], c: TNum) : TVec[I] {.noSideEffect.} =
-  result = x
-  for i in x.low..x.high: result[i] /= float(c)
+  for i in x.low..x.high: result[i] = x[i] / float(c)
 
 proc `/`*[I] (c: TNum, x: TVec[I]) : TVec[I] {.noSideEffect.} =
-  result = x
-  for i in x.low..x.high: result[i] = float(c)/result[i]
+  for i in x.low..x.high: result[i] = float(c)/x[i]
 
 #_____________________________________________________________________________
 #
 # commutativity definitions
 #_____________________________________________________________________________
 
-template `*`*[I, T] (c: TNum, x: array[I, T]) : auto = x*c
-template `+`*[I, T] (c: TNum, x: array[I, T]) : auto = x+c
-template `-`*[I, T] (c: TNum, x: array[I, T]) : auto = -x+c
+template `*`*[I] (c: TNum, x: TVec[I]) : auto = x*c
+template `+`*[I] (c: TNum, x: TVec[I]) : auto = x+c
+template `-`*[I] (c: TNum, x: TVec[I]) : auto = -x+c

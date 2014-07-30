@@ -4,7 +4,7 @@ niML is eventually going to be a machine learning library for nimrod. Currently 
 
 ## Example
 
-Let's find the minimum of the function y(x) = (x-x_0)^2$ for x_0 = (2,1) using gradient descent and Newton's method. For this we will have to pass the gradient and Hessian of the function.
+Let's find the minimum of the function y(x) = (x-x_0)^2 for x_0 = (2,1) using gradient descent and Newton's method. For this we will have to pass the gradient and Hessian of the function.
 
 ```nimrod
 import niml.opt, niml.vec
@@ -25,14 +25,12 @@ There's obviously a lot to do, and you can help.
 
 * Comment the code.
 * Write unit tests.
-* Write ML routines.
 * Create a package.
 * File bug reports.
-
-## History
-
-* **0.01** (2014/07/21) Initial release.
+* Write ML routines.
+* Add multi-threading.
+* Support PLASMA/MAGMA.
 
 # License
 
-This package is released under the [GNU GPL v2.0](http://choosealicense.com/licenses/gpl-2.0/) license.
+This software is released under the [GNU GPL v2.0](http://choosealicense.com/licenses/gpl-2.0/) license.
