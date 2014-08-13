@@ -8,7 +8,7 @@
 import future, math
 
 type
-  Tfloat = TReal
+  Tfloat* = TReal
   TNum* = TNumber
   TVec*[I] = array[I, Tfloat]
 

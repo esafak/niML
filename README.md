@@ -29,7 +29,7 @@ There's obviously a lot to do, and you can help.
 * File bug reports.
 * Write ML routines.
 * Add multi-threading.
-* Support PLASMA/MAGMA.
+* Support [PLASMA](http://icl.cs.utk.edu/plasma/)/[MAGMA](http://icl.cs.utk.edu/magma/.
 
 # License
 
