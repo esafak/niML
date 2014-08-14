@@ -1,9 +1,12 @@
+# To compile you need to link lapacke, lapack, and blas. I use the following incantation:
+# nimrod c -r -l:"/usr/lib/liblapacke.a" -l:"-llapack" -l:"-lcblas" test.nim
+
 #_____________________________________________________________________________
 #
 # Create some vectors
 #_____________________________________________________________________________
 
-import niml.vec
+import niml.vec, niml.mat
 
 echo vec.zeros(10)
 echo vec.ones(10)
@@ -48,7 +51,6 @@ import niml.clapack
 # Example from http://www.nag.com/lapack-ex/node5.html
 var a : array[0..15, doublereal] = [1.8.doublereal, 5.25, 1.58, -1.11, 2.88, -2.95, -2.69, -0.66, 
                             2.05, -0.95, -2.9, -0.59, -0.89, -3.8, -1.04, 0.8]
-var a_tr : array[0..15, doublereal] = [1.8.doublereal, 2.88, 2.05, -0.89, 5.25, -2.95, -0.95, -3.80, 1.58, -2.69, -2.90, -1.04, -1.11, -0.66, -0.59, 0.80]
 var b : array[0..3, doublereal] = [9.52.doublereal, 24.35, 0.77, -6.22]
 var ipiv : array[0..3, cint]
 var (n, nrhs, lda, ldb) = (4.integer, 1.integer, 4.integer, 4.integer)
@@ -70,19 +72,28 @@ var info : integer # array[0..15, doublereal]
 
 discard clapack.dgesv(n, nrhs, &:a, lda, &:ipiv, &:b, ldb, info)
 # echo clapack.dgesv(addr n, addr nrhs, a, addr lda, ipiv, b, addr ldb, addr info)
-echo b.repr, ipiv.repr, info
+echo b.repr, ipiv.repr
 
 import niml.lapacke
-b = [9.52.doublereal, 24.35, 0.77, -6.22]
-discard clapack.dgesv(n, nrhs, &:a_tr, lda, &:ipiv, &:b, ldb, info)
-echo b.repr
+# var a_tr : array[0..15, cdouble] = [1.8, 5.25, 1.58, -1.11, 2.88, -2.95, -2.69, -0.66, 
+#                             2.05, -0.95, -2.9, -0.59, -0.89, -3.8, -1.04, 0.8]
+# var a_tr : array[0..15, cdouble] = [1.8, 2.88, 2.05, -0.89, 5.25, -2.95, -0.95, -3.80, 1.58, -2.69, 
+#                                     -2.90, -1.04, -1.11, -0.66, -0.59, 0.80]
+var a_tr : array[0..3, array[0..3, cdouble]] = [[1.8, 2.88, 2.05, -0.89], [5.25, -2.95, -0.95, -3.80], [1.58, -2.69, -2.90, -1.04], [-1.11, -0.66, -0.59, 0.80]]
+
+var b_tr : array[0..3, cdouble] = [9.52, 24.35, 0.77, -6.22]
+ipiv.reset
+# echo ipiv.repr
+# echo type(addr(a_tr[0][0])) is (ptr cdouble), type(a_tr[0]) is array, type(a[0]) is array
+# var a_ptr : ptr cdouble = &:a_tr
+# var ipiv_ptr : ptr cint = &:ipiv
+discard lapacke.dgesv(LAPACK_ROW_MAJOR, 4, 1, &:a_tr, 4, &:ipiv, &:b_tr, 1)
+echo b_tr.repr, ipiv.repr
 
 #_____________________________________________________________________________
 #
 # Check the linear algebra routines
 #_____________________________________________________________________________
-
-import niml.mat
 
 const
   Ma = [[1.0, 2.0],

@@ -7,7 +7,19 @@
 
 import vec
 
-type TMatrix*[R, C: range; T] = array[C, array[R, T]]
+type TMatrix*[R, C: range; T: TNumber] = array[C, array[R, T]]
+
+#_____________________________________________________________________________
+#
+# Ancillary routines
+#_____________________________________________________________________________
+
+# used to cast arrays to their base pointers for C procedures
+template `&:`*(x: expr): expr = 
+  when type(x[0]) is array:
+    cast[ptr type(x[0][0])](addr x)
+  else:
+    cast[ptr type(x[0])](addr x)
 
 #_____________________________________________________________________________
 #
@@ -24,8 +36,8 @@ type TMatrix*[R, C: range; T] = array[C, array[R, T]]
 #_____________________________________________________________________________
 
 proc shape*[R,C,T](x: TMatrix[R,C,T]) : array[0..1, int] =
-    result[0] = R.high-R.low+1
-    result[1] = C.high-C.low+1
+  result[0] = R.high-R.low+1
+  result[1] = C.high-C.low+1
 #_____________________________________________________________________________
 #
 # Manipulation routines

@@ -45,10 +45,7 @@ when not defined(CLAPACK_H):
   # We use this reference approach, suggested by nimrod developers in IRC,
   # to avoid a type mismatch problem related to array constructors
   converter toFArray*[I, T] (x: ref array[I, T]): PArray[T] = cast[PArray[T]](x)
-
-  # used to cast arrays to their base pointers for C procedures
-  template `&:`*(x: expr): expr = cast[ptr type(x[0])](addr x)
-
+  
   # macro toInteger*[T](args: tuple[T]): tuple[args: integer] = 
   #   for x in args: result[x] = cast[integer](x)
 
