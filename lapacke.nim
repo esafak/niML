@@ -1,3 +1,14 @@
+#_____________________________________________________________________________
+#
+# Manually patched after conversion from lapacke.h by c2nim 0.9.4
+#
+# Emre Safak (c) 2014
+#
+# Note that only the procedures that contain an importc are currently wrapped.
+# If you need the others you are welcome to DIY and submit a pull request.
+#_____________________________________________________________________________
+
+
 #****************************************************************************
 #  Copyright (c) 2010, Intel Corp.
 #  All rights reserved.
@@ -1059,7 +1070,7 @@ when not defined(LAPACKE_H):
   proc cupmtr *(matrix_order: cint; side: char; uplo: char; trans: char;                           m: lapack_int; n: lapack_int;                        ap: ptr lapack_complex_float;                          tau: ptr lapack_complex_float;                          c: ptr lapack_complex_float; ldc: lapack_int): lapack_int {.importc: "LAPACKE_cupmtr".}   
   proc zupmtr *(matrix_order: cint; side: char; uplo: char; trans: char;                           m: lapack_int; n: lapack_int;                        ap: ptr lapack_complex_double;                        tau: ptr lapack_complex_double;                        c: ptr lapack_complex_double; ldc: lapack_int): lapack_int {.importc: "LAPACKE_zupmtr".}   
   
-  when False:
+  when False: # here be unsupported procedures
 
     proc sbdsdc_work *(matrix_order: cint; uplo: char; compq: char;                                n: lapack_int; d: ptr cfloat; e: ptr cfloat;                               u: ptr cfloat; ldu: lapack_int; vt: ptr cfloat;                               ldvt: lapack_int; q: ptr cfloat; iq: ptr lapack_int;                             work: ptr cfloat; iwork: ptr lapack_int): lapack_int {.importc: "LAPACKE_sbdsdc_work".}   
     proc dbdsdc_work *(matrix_order: cint; uplo: char; compq: char;                                n: lapack_int; d: ptr cdouble; e: ptr cdouble;                               u: ptr cdouble; ldu: lapack_int; vt: ptr cdouble;                               ldvt: lapack_int; q: ptr cdouble;                               iq: ptr lapack_int; work: ptr cdouble;                               iwork: ptr lapack_int): lapack_int {.importc: "LAPACKE_dbdsdc_work".}   

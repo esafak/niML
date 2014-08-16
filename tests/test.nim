@@ -1,5 +1,12 @@
-# To compile you need to link lapacke, lapack, and blas. I use the following incantation:
+# To compile you need to link lapacke, lapack, and blas:
 # nimrod c -r -l:"/usr/lib/liblapacke.a" -l:"-llapack" -l:"-lcblas" test.nim
+
+# With ATLAS the following works for me:
+# nimrod c -r -l:"/usr/lib/liblapacke.a" -l:"-llapack" -l:"-latlas" test.nim
+
+# LAPACKE seems to need static inclusion. Please contact me if yours doesn't.
+
+import unittest
 
 #_____________________________________________________________________________
 #
@@ -70,7 +77,7 @@ var (n, nrhs, lda, ldb) = (4.integer, 1.integer, 4.integer, 4.integer)
 
 var info : integer # array[0..15, doublereal]
 
-discard clapack.dgesv(n, nrhs, &:a, lda, &:ipiv, &:b, ldb, info)
+# discard clapack.dgesv(n, nrhs, &:a, lda, &:ipiv, &:b, ldb, info)
 # echo clapack.dgesv(addr n, addr nrhs, a, addr lda, ipiv, b, addr ldb, addr info)
 echo b.repr, ipiv.repr
 
@@ -89,6 +96,23 @@ ipiv.reset
 # var ipiv_ptr : ptr cint = &:ipiv
 discard lapacke.dgesv(LAPACK_ROW_MAJOR, 4, 1, &:a_tr, 4, &:ipiv, &:b_tr, 1)
 echo b_tr.repr, ipiv.repr
+
+# example from https://software.intel.com/sites/products/documentation/doclib/mkl_sa/11/mkl_lapack_examples/lapacke_sgeev_row.c.htm
+
+var A1 : array[0..24, cfloat] =
+ [-1.01.cfloat, 0.86, -4.60, 3.31, -4.81,
+   3.98, 0.53, -7.04, 5.29,  3.55,
+   3.30, 8.26, -3.89, 8.20, -1.51,
+   4.43, 4.96, -7.66, -7.33, 6.18,
+   7.31, -6.43, -6.16, 2.47, 5.58]
+
+var
+  lda1, wr, wi: array[0..4, cfloat]
+  vl, vr: array[0..24, cfloat]
+
+discard sgeev(LAPACK_ROW_MAJOR, 'V', 'V', 5, &:A1, 5, &:wr, &:wi, &:vl, 5, &:vr, 5)
+
+echo "Eigenvalues: ", wr.repr, ',', wi.repr
 
 #_____________________________________________________________________________
 #
